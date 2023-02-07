@@ -8,8 +8,9 @@
 import SwiftCLI
 import SwiftSyntax
 import SwiftSyntaxParser
-@testable import TypologyCore
 import XCTest
+
+@testable import TypologyCore
 
 final class DiagnosticTests: XCTestCase {
   func testIsSwiftFile() throws {
@@ -78,7 +79,7 @@ final class DiagnosticTests: XCTestCase {
         SourceRange(
           start: location,
           end: location
-        ),
+        )
       ],
       fixIts: []
     )
@@ -106,7 +107,7 @@ final class DiagnosticTests: XCTestCase {
         SourceRange(
           start: location,
           end: location3
-        ),
+        )
       ],
       fixIts: []
     )

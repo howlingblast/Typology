@@ -6,8 +6,9 @@
 //  Copyright © 2019 Typology. All rights reserved.
 //
 
-@testable import TypologyCore
 import XCTest
+
+@testable import TypologyCore
 
 final class InferenceTests: XCTestCase {
   func testTernary() throws {
@@ -52,10 +53,12 @@ final class InferenceTests: XCTestCase {
       ["x"],
       .application(
         "decode",
-        [.application(
-          "stringify",
-          [.application("increment", ["x"])]
-        )]
+        [
+          .application(
+            "stringify",
+            [.application("increment", ["x"])]
+          )
+        ]
       )
     )
 
@@ -63,10 +66,12 @@ final class InferenceTests: XCTestCase {
       ["x"],
       .application(
         "stringify",
-        [.application(
-          "decode",
-          [.application("increment", ["x"])]
-        )]
+        [
+          .application(
+            "decode",
+            [.application("increment", ["x"])]
+          )
+        ]
       )
     )
 
@@ -161,7 +166,7 @@ final class InferenceTests: XCTestCase {
       "String": [
         "appending": [.init(.string --> .string)],
         "count": [.init(.int)],
-      ],
+      ]
     ]
 
     XCTAssertEqual(try appending.infer(members: m), .string)
@@ -175,10 +180,10 @@ final class InferenceTests: XCTestCase {
 
     let m: Members = [
       "String": [
-        "count": [.init(.int)],
+        "count": [.init(.int)]
       ],
       "Int": [
-        "magnitude": [.init(.int)],
+        "magnitude": [.init(.int)]
       ],
     ]
 
@@ -196,10 +201,10 @@ final class InferenceTests: XCTestCase {
 
     let m: Members = [
       "String": [
-        "count": [.init(.int)],
+        "count": [.init(.int)]
       ],
       "Int": [
-        "magnitude": [.init(.int)],
+        "magnitude": [.init(.int)]
       ],
     ]
 
@@ -233,64 +238,91 @@ final class InferenceTests: XCTestCase {
     let wrongOrder = Expr.tuple([.literal(10), .literal("some text")])
 
     let e: Environment = [
-      "acceptNamedTuple": [.init(.namedTuple([
-        ("text", .string),
-        ("count", .int),
-      ]) --> .string)],
-      "acceptTuple": [.init(.namedTuple([
-        (nil, .string),
-        (nil, .int),
-      ]) --> .string)],
-      "acceptMixedTuple": [.init(.namedTuple([
-        ("text", .string),
-        (nil, .int),
-      ]) --> .string)],
+      "acceptNamedTuple": [
+        .init(
+          .namedTuple([
+            ("text", .string),
+            ("count", .int),
+          ]) --> .string)
+      ],
+      "acceptTuple": [
+        .init(
+          .namedTuple([
+            (nil, .string),
+            (nil, .int),
+          ]) --> .string)
+      ],
+      "acceptMixedTuple": [
+        .init(
+          .namedTuple([
+            ("text", .string),
+            (nil, .int),
+          ]) --> .string)
+      ],
     ]
 
     XCTAssertEqual(try Expr.member(namedTuple, "text").infer(), .string)
     XCTAssertEqual(try Expr.member(namedTuple, "count").infer(), .int)
     XCTAssertThrowsError(try Expr.member(namedTuple, "name").infer())
 
-    XCTAssertEqual(try Expr.application("acceptNamedTuple", [namedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptNamedTuple", [tuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptNamedTuple", [mixedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptNamedTuple", [mixedTuple2])
-      .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptNamedTuple", [namedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptNamedTuple", [tuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptNamedTuple", [mixedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptNamedTuple", [mixedTuple2])
+        .infer(environment: e), .string)
 
-    XCTAssertEqual(try Expr.application("acceptTuple", [namedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptTuple", [tuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptTuple", [mixedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptTuple", [mixedTuple2])
-      .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptTuple", [namedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptTuple", [tuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptTuple", [mixedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptTuple", [mixedTuple2])
+        .infer(environment: e), .string)
 
-    XCTAssertEqual(try Expr.application("acceptMixedTuple", [namedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptMixedTuple", [tuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptMixedTuple", [mixedTuple])
-      .infer(environment: e), .string)
-    XCTAssertEqual(try Expr.application("acceptMixedTuple", [mixedTuple2])
-      .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptMixedTuple", [namedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptMixedTuple", [tuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptMixedTuple", [mixedTuple])
+        .infer(environment: e), .string)
+    XCTAssertEqual(
+      try Expr.application("acceptMixedTuple", [mixedTuple2])
+        .infer(environment: e), .string)
 
-    XCTAssertThrowsError(try Expr.application("acceptNamedTuple", [fewArguments])
-      .infer(environment: e))
-    XCTAssertThrowsError(try Expr.application("acceptTuple", [fewArguments])
-      .infer(environment: e))
-    XCTAssertThrowsError(try Expr.application("acceptMixedTuple", [fewArguments])
-      .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptNamedTuple", [fewArguments])
+        .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptTuple", [fewArguments])
+        .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptMixedTuple", [fewArguments])
+        .infer(environment: e))
 
-    XCTAssertThrowsError(try Expr.application("acceptNamedTuple", [wrongOrder])
-      .infer(environment: e))
-    XCTAssertThrowsError(try Expr.application("acceptTuple", [wrongOrder])
-      .infer(environment: e))
-    XCTAssertThrowsError(try Expr.application("acceptMixedTuple", [wrongOrder])
-      .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptNamedTuple", [wrongOrder])
+        .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptTuple", [wrongOrder])
+        .infer(environment: e))
+    XCTAssertThrowsError(
+      try Expr.application("acceptMixedTuple", [wrongOrder])
+        .infer(environment: e))
   }
 
   func testOverload() throws {
@@ -299,25 +331,28 @@ final class InferenceTests: XCTestCase {
     let count = Expr.member(.application("f", []), "count")
     let magnitude = Expr.member(.application("f", []), "magnitude")
     let error = Expr.member(
-      .application("f",
-                   [.tuple(
-                     [.literal("blah")]
-      )]), "count"
+      .application(
+        "f",
+        [
+          .tuple(
+            [.literal("blah")]
+          )
+        ]), "count"
     )
 
     let m: Members = [
       "String": [
-        "count": [.init(.int)],
+        "count": [.init(.int)]
       ],
       "Int": [
-        "magnitude": [.init(uint)],
+        "magnitude": [.init(uint)]
       ],
     ]
     let e: Environment = [
       "f": [
         .init([] --> .int),
         .init([] --> .string),
-      ],
+      ]
     ]
 
     XCTAssertEqual(try count.infer(environment: e, members: m), .int)
@@ -362,29 +397,30 @@ final class InferenceTests: XCTestCase {
         "ambiguous": [.init(.int)],
       ],
       "String": [
-        "count": [.init(.int)],
+        "count": [.init(.int)]
       ],
       "Int": [
-        "magnitude": [.init(uint)],
+        "magnitude": [.init(uint)]
       ],
     ]
     let e: Environment = [
       "f": [
         .init([] --> a),
         .init([] --> b),
-      ],
+      ]
     ]
 
     XCTAssertEqual(try count.infer(environment: e, members: m), .int)
     XCTAssertEqual(try magnitude.infer(environment: e, members: m), uint)
     XCTAssertEqual(try ambiguousCount.infer(environment: e, members: m), .int)
-    XCTAssertEqual(try ambiguousMagnitude.infer(environment: e, members: m),
-                   uint)
+    XCTAssertEqual(
+      try ambiguousMagnitude.infer(environment: e, members: m),
+      uint)
     XCTAssertThrowsError(try ambiguous.infer(environment: e, members: m))
     XCTAssertThrowsError(try error.infer(environment: e, members: m))
   }
 
   static var allTests = [
-    ("testTernary", testTernary),
+    ("testTernary", testTernary)
   ]
 }

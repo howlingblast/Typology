@@ -5,11 +5,12 @@
 //  Created by Max Desiatov on 25/05/2019.
 //
 
-@testable import TypologyCore
 import XCTest
 
+@testable import TypologyCore
+
 class Benchmarks: XCTestCase {
-  func delayErrors(_ closure: (() -> ()) -> ()) throws {
+  func delayErrors(_ closure: (() -> Void) -> Void) throws {
     var caughtError: Error?
 
     closure {
@@ -18,14 +19,22 @@ class Benchmarks: XCTestCase {
           ["x"],
           .application(
             "decode",
-            [.application(
-              "stringify",
-              [.application("increment", [.ternary(
-                .literal(.bool(false)),
-                "x",
-                .literal(42)
-              )])]
-            )]
+            [
+              .application(
+                "stringify",
+                [
+                  .application(
+                    "increment",
+                    [
+                      .ternary(
+                        .literal(.bool(false)),
+                        "x",
+                        .literal(42)
+                      )
+                    ])
+                ]
+              )
+            ]
           )
         )
 

@@ -5,8 +5,9 @@
 //  Created by Max Desiatov on 01/06/2019.
 //
 
-@testable import TypologyCore
 import XCTest
+
+@testable import TypologyCore
 
 let root = URL(fileURLWithPath: #file)
   .deletingLastPathComponent()
@@ -16,11 +17,14 @@ let root = URL(fileURLWithPath: #file)
 
 final class ASTTests: XCTestCase {
   func testTernary() throws {
-    let string = try #"true ? "then" : "else""# .parseAST()
+    let string =
+      try #"true ? "then" : "else""#.parseAST()
       .statements.first as? ExprNode
-    let int = try "false ? 0 : 42".parseAST()
+    let int =
+      try "false ? 0 : 42".parseAST()
       .statements.first as? ExprNode
-    let error = try #"true ? "then" : 42"# .parseAST()
+    let error =
+      try #"true ? "then" : 42"#.parseAST()
       .statements.first as? ExprNode
 
     XCTAssertEqual(try string?.expr.infer(), .string)
@@ -29,30 +33,35 @@ final class ASTTests: XCTestCase {
   }
 
   func testFunc() throws {
-    let f = try "func x(_ x: String, y: [Int]) -> Int { return 42 }"
+    let f =
+      try "func x(_ x: String, y: [Int]) -> Int { return 42 }"
       .parseAST().statements.first as? FunctionDecl
 
-    XCTAssertEqual(f?.scheme, Scheme(
-      [.string, .array(of: .int)] --> .int
-    ))
+    XCTAssertEqual(
+      f?.scheme,
+      Scheme(
+        [.string, .array(of: .int)] --> .int
+      ))
   }
 
   func testGenericFunc() throws {
-    let f = try "func x<T>(_ x: T, _ y: T) -> T { return x }"
+    let f =
+      try "func x<T>(_ x: T, _ y: T) -> T { return x }"
       .parseAST().statements.first as? FunctionDecl
 
     let tVar = "T"
     let t = Type.constructor(TypeIdentifier(value: tVar), [])
 
-    XCTAssertEqual(f?.scheme, Scheme(
-      [t, t] --> t,
-      variables: [TypeVariable(value: tVar)]
-    ))
+    XCTAssertEqual(
+      f?.scheme,
+      Scheme(
+        [t, t] --> t,
+        variables: [TypeVariable(value: tVar)]
+      ))
   }
 
   func testFuncPosition() throws {
-    let functions = try
-      """
+    let functions = try """
           // declare function #commentsForComments
           //This is also a comment
           //    but is written over multiple lines.
@@ -108,8 +117,8 @@ final class ASTTests: XCTestCase {
   }
 }
 
-fileprivate extension String {
-  func parseAST() throws -> File {
+extension String {
+  fileprivate func parseAST() throws -> File {
     try .init(contents: self)
   }
 }

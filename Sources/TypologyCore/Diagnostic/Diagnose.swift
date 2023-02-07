@@ -21,17 +21,18 @@ public final class Diagnose: Command {
     } else {
       let resourceKeys: [URLResourceKey] = [.creationDateKey, .isDirectoryKey]
       let baseurl = URL(fileURLWithPath: path.value)
-      guard let enumerator = FileManager
-        .default
-        .enumerator(at: baseurl,
-                    includingPropertiesForKeys: resourceKeys,
-                    options: [.skipsHiddenFiles],
-                    errorHandler: { (url, error) -> Bool in
-                      print("Error while reading a list of files" +
-                        " in folder at \(url.path): ", error)
-                      return true
-        })?.compactMap({ $0 as? URL })
-        .filter({ isSwiftFile($0.path) })
+      guard
+        let enumerator = FileManager
+          .default
+          .enumerator(
+            at: baseurl,
+            includingPropertiesForKeys: resourceKeys,
+            options: [.skipsHiddenFiles],
+            errorHandler: { (url, error) -> Bool in
+              print("Error while reading a list of files" + " in folder at \(url.path): ", error)
+              return true
+            })?.compactMap({ $0 as? URL })
+          .filter({ isSwiftFile($0.path) })
       else {
         fatalError("Enumerator is nil")
       }
@@ -65,7 +66,7 @@ public func parseFile(
         SourceRange(
           start: error.range.start,
           end: error.range.end
-        ),
+        )
       ],
       fixIts: []
     )

@@ -20,6 +20,7 @@ struct ASTError: DiagnosticError {
 
 extension ASTError {
   init(_ syntax: Syntax, _ value: Value, _ converter: SourceLocationConverter) {
-    self.init(range: syntax.sourceRange(converter: converter), value: value, syntax: syntax.description)
+    self.init(
+      range: syntax.sourceRange(converter: converter), value: value, syntax: syntax.description)
   }
 }

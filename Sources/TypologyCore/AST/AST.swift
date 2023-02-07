@@ -66,13 +66,15 @@ extension SyntaxProtocol {
       return try syntax.item.toStatement(converter)
 
     case let syntax as FunctionCallExprSyntax:
-      return try [ExprNode(
-        expr: Expr.application(
-          Expr(syntax.calledExpression, converter),
-          syntax.argumentList.map { try Expr($0.expression, converter) }
-        ),
-        range: syntax.sourceRange(converter: converter)
-      )]
+      return try [
+        ExprNode(
+          expr: Expr.application(
+            Expr(syntax.calledExpression, converter),
+            syntax.argumentList.map { try Expr($0.expression, converter) }
+          ),
+          range: syntax.sourceRange(converter: converter)
+        )
+      ]
 
     default:
       throw ASTError(_syntaxNode, .unknownSyntax, converter)

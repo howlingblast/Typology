@@ -32,9 +32,10 @@ indirect enum Expr {
   case namedTuple([(Identifier?, Expr)])
 
   static func tuple(_ expressions: [Expr]) -> Expr {
-    return .namedTuple(expressions.enumerated().map {
-      (nil, $0.1)
-    })
+    return .namedTuple(
+      expressions.enumerated().map {
+        (nil, $0.1)
+      })
   }
 
   func infer(
@@ -92,9 +93,11 @@ extension Expr {
       self = .literal(.bool(bool))
 
     } else if let literal = StringLiteralExprSyntax(expr._syntaxNode) {
-      self = .literal(.string(literal.segments.compactMap {
-        ($0 as? StringSegmentSyntax)?.content.text
-      }.joined()))
+      self = .literal(
+        .string(
+          literal.segments.compactMap {
+            ($0 as? StringSegmentSyntax)?.content.text
+          }.joined()))
 
     } else {
       throw ASTError(expr._syntaxNode, .unknownSyntax, converter)

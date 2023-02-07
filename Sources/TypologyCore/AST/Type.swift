@@ -120,9 +120,10 @@ enum Type {
   case namedTuple([(Identifier?, Type)])
 
   static func tuple(_ types: [Type]) -> Type {
-    return .namedTuple(types.enumerated().map {
-      (nil, $0.1)
-    })
+    return .namedTuple(
+      types.enumerated().map {
+        (nil, $0.1)
+      })
   }
 
   static func array(of: Type) -> Type {
@@ -174,17 +175,17 @@ extension Type: CustomStringConvertible {
 infix operator -->
 
 /// A shorthand version of `Type.arrow`
-func -->(arguments: [Type], returned: Type) -> Type {
+func --> (arguments: [Type], returned: Type) -> Type {
   return Type.arrow(arguments, returned)
 }
 
 /// A shorthand version of `Type.arrow` for single argument functions
-func -->(argument: Type, returned: Type) -> Type {
+func --> (argument: Type, returned: Type) -> Type {
   return Type.arrow([argument], returned)
 }
 
 extension Type: Equatable {
-  static func ==(lhs: Type, rhs: Type) -> Bool {
+  static func == (lhs: Type, rhs: Type) -> Bool {
     switch (lhs, rhs) {
     case let (.constructor(id1, t1), .constructor(id2, t2)):
       return id1 == id2 && t1 == t2
@@ -215,7 +216,8 @@ extension TypeSyntaxProtocol {
       return try .array(of: array.elementType.toType(converter))
 
     case let dictionary as DictionaryTypeSyntax:
-      return try .dict(key: dictionary.keyType.toType(converter), value: dictionary.valueType.toType(converter))
+      return try .dict(
+        key: dictionary.keyType.toType(converter), value: dictionary.valueType.toType(converter))
 
     default:
       throw ASTError(_syntaxNode, .unknownSyntax, converter)

@@ -32,11 +32,11 @@ public class ConsoleDiagnosticConsumer: TypologyDiagnosticConsumer {
 
   /// Prints each of the fields in a diagnostic to stderr.
   public func write(_ diagnostic: TypologyDiagnostic, _ fileContent: [String]) {
-    if
-      let loc = diagnostic.location,
+    if let loc = diagnostic.location,
       let file = loc.file,
       let line = loc.line,
-      let column = loc.column {
+      let column = loc.column
+    {
       write("\(file):\(line):\(column): ")
     } else {
       write("<unknown>:0:0: ")
@@ -70,9 +70,9 @@ public class ConsoleDiagnosticConsumer: TypologyDiagnosticConsumer {
           let lineOffset = offset(line, endLine)
           let errorString = fileContent[line]
 
-          print("\(String(line).applyingColor(.blue))" +
-            "\(lineOffset)\(">".applyingColor(.red))" +
-            "\(verticalSeparator) \(errorString)")
+          print(
+            "\(String(line).applyingColor(.blue))" + "\(lineOffset)\(">".applyingColor(.red))"
+              + "\(verticalSeparator) \(errorString)")
         }
 
         print(maxOffset, verticalSeparator)
@@ -88,8 +88,7 @@ public class ConsoleDiagnosticConsumer: TypologyDiagnosticConsumer {
         .applyingColor(.red)
 
         print(maxOffset, verticalSeparator)
-        print("\(String(errorLine).applyingColor(.blue))" +
-          "  \(verticalSeparator) \(errorString)")
+        print("\(String(errorLine).applyingColor(.blue))" + "  \(verticalSeparator) \(errorString)")
         print(maxOffset, verticalSeparator, errorOffset, errorUnderscore)
       }
     }
