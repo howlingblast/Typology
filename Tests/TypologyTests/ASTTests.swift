@@ -33,7 +33,7 @@ final class ASTTests: XCTestCase {
       .parseAST().statements.first as? FunctionDecl
 
     XCTAssertEqual(f?.scheme, Scheme(
-      [.string, .constructor("Array", [.int])] --> .int
+      [.string, .array(of: .int)] --> .int
     ))
   }
 
@@ -105,5 +105,11 @@ final class ASTTests: XCTestCase {
   func testInitFromFileNegative() throws {
     let url = root.appendingPathComponent("Negative.swift")
     XCTAssertThrowsError(try File(path: url.path))
+  }
+}
+
+fileprivate extension String {
+  func parseAST() throws -> File {
+    try .init(contents: self)
   }
 }

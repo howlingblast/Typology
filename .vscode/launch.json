@@ -1,0 +1,33 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug tests",
+      "program": "${workspaceFolder:Typology}/.build/debug/TypologyPackageTests.xctest",
+      "args": [
+        "TypologyTests.ASTTests/testFunc",
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "swift: Build Debug All",
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug typology",
+      "program": "${workspaceFolder:Typology}/.build/debug/typology",
+      "args": [],
+      "cwd": "${workspaceFolder:Typology}",
+      "preLaunchTask": "swift: Build Debug typology"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Release typology",
+      "program": "${workspaceFolder:Typology}/.build/release/typology",
+      "args": [],
+      "cwd": "${workspaceFolder:Typology}",
+      "preLaunchTask": "swift: Build Release typology"
+    }
+  ]
+}

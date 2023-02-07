@@ -28,6 +28,10 @@ struct TypeIdentifier: Hashable {
   let value: String
 }
 
+extension TypeIdentifier: CustomStringConvertible {
+  var description: String { value }
+}
+
 extension TypeIdentifier: ExpressibleByStringLiteral {
   init(stringLiteral value: String) {
     self.value = value
@@ -121,10 +125,50 @@ enum Type {
     })
   }
 
+  static func array(of: Type) -> Type {
+    .constructor("Array", [of])
+  }
+
+  static func dict(key: Type, value: Type) -> Type {
+    .constructor("Dictionary", [key, value])
+  }
+
   static let bool = Type.constructor("Bool", [])
   static let string = Type.constructor("String", [])
   static let double = Type.constructor("Double", [])
   static let int = Type.constructor("Int", [])
+}
+
+extension Type: CustomStringConvertible {
+  var description: String {
+    switch self {
+    case .constructor(let ident, []):
+      return ident.value
+    case .constructor("Array", let types) where types.count == 1:
+      return "[\(types[0])]"
+    case .constructor("Dictionary", let types) where types.count == 2:
+      return "[\(types[0]): \(types[1])]"
+    case .constructor(let ident, let types):
+      return "\(ident)<\(types.map { $0.description }.joined(separator: ", "))>"
+
+    case .variable(let variable):
+      return variable.value
+
+    case .arrow(let params, let ret):
+      return "(\(params.map { $0.description }.joined(separator: ", "))) -> \(ret)"
+
+    case .namedTuple(let types):
+      let pairs = types.map { (ident, ty) in
+        if let ident = ident {
+          return "\(ident): \(ty)"
+        }
+
+        return ty.description
+      }
+
+      return "(\(pairs.joined(separator: ", ")))"
+    }
+  }
 }
 
 infix operator -->
@@ -158,16 +202,29 @@ extension Type: Equatable {
   }
 }
 
+extension TypeSyntaxProtocol {
+  func toType(_ converter: SourceLocationConverter) throws -> Type {
+    switch self {
+    case let identifier as SimpleTypeIdentifierSyntax:
+      return .constructor(TypeIdentifier(value: identifier.name.text), [])
+
+    case let tuple as TupleTypeSyntax:
+      return try .tuple(tuple.elements.map { try $0.type.toType(converter) })
+
+    case let array as ArrayTypeSyntax:
+      return try .array(of: array.elementType.toType(converter))
+
+    case let dictionary as DictionaryTypeSyntax:
+      return try .dict(key: dictionary.keyType.toType(converter), value: dictionary.valueType.toType(converter))
+
+    default:
+      throw ASTError(_syntaxNode, .unknownSyntax, converter)
+    }
+  }
+}
+
 extension Type {
   init(_ type: TypeSyntaxProtocol, _ converter: SourceLocationConverter) throws {
-    if let tuple = TupleTypeSyntax(type._syntaxNode) {
-      self = try .tuple(tuple.elements.map { try Type($0.type, converter) })
-    } else if let identifier = SimpleTypeIdentifierSyntax(type._syntaxNode) {
-      self = .constructor(TypeIdentifier(value: identifier.name.text), [])
-    } else if let array = ArrayTypeSyntax(type._syntaxNode) {
-      self = try .constructor("Array", [Type(array.elementType, converter)])
-    } else {
-      throw ASTError(type._syntaxNode, .unknownSyntax, converter)
-    }
+    self = try type.toType(converter)
   }
 }

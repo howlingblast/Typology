@@ -8,6 +8,7 @@
 import Foundation
 import SwiftCLI
 import SwiftSyntax
+import SwiftSyntaxParser
 
 public final class Diagnose: Command {
   public init() {}

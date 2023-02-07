@@ -23,7 +23,7 @@ extension Modifier {
   init(_ syntax: DeclModifierSyntax, _ converter: SourceLocationConverter) {
     self.init(
       name: syntax.name.text,
-      detail: syntax.detail?.text,
+      detail: syntax.detail?.description,
       range: syntax.sourceRange(converter: converter)
     )
   }

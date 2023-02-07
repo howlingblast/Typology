@@ -15,10 +15,11 @@ struct ASTError: DiagnosticError {
 
   let range: SourceRange
   let value: Value
+  let syntax: String
 }
 
 extension ASTError {
   init(_ syntax: Syntax, _ value: Value, _ converter: SourceLocationConverter) {
-    self.init(range: syntax.sourceRange(converter: converter), value: value)
+    self.init(range: syntax.sourceRange(converter: converter), value: value, syntax: syntax.description)
   }
 }

@@ -68,7 +68,7 @@ struct ConstraintSystem {
   ) throws -> Type where T: Sequence, T.Element == (Identifier, Scheme) {
     // preserve old environment to be restored after inference in extended
     // environment has finished
-    var old = self.environment
+    let old = self.environment
 
     defer { self.environment = old }
 

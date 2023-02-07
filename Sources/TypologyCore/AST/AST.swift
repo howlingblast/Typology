@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 typealias Identifier = String
 typealias Operator = String
@@ -40,19 +41,31 @@ struct Target {
   let main: Module
 }
 
-extension Syntax {
+extension CodeBlockItemSyntax.Item {
   func toStatement(_ converter: SourceLocationConverter) throws -> [Statement] {
-    if let syntax = VariableDeclSyntax(self) {
+    try _syntaxNode.toStatement(converter)
+  }
+}
+
+extension SyntaxProtocol {
+  func toStatement(_ converter: SourceLocationConverter) throws -> [Statement] {
+    switch self {
+    case let syntax as VariableDeclSyntax:
       return try [BindingDecl(syntax, converter)]
-    } else if let syntax = SequenceExprSyntax(self) {
+
+    case let syntax as SequenceExprSyntax:
       return try syntax.elements.map { try ExprNode($0, converter) }
-    } else if let syntax = FunctionDeclSyntax(self) {
+
+    case let syntax as FunctionDeclSyntax:
       return try [FunctionDecl(syntax, converter)]
-    } else if let syntax = ReturnStmtSyntax(self) {
+
+    case let syntax as ReturnStmtSyntax:
       return try [ReturnStmt(syntax, converter)]
-    } else if let syntax = CodeBlockItemSyntax(self) {
+
+    case let syntax as CodeBlockItemSyntax:
       return try syntax.item.toStatement(converter)
-    } else if let syntax = FunctionCallExprSyntax(self) {
+
+    case let syntax as FunctionCallExprSyntax:
       return try [ExprNode(
         expr: Expr.application(
           Expr(syntax.calledExpression, converter),
@@ -60,7 +73,8 @@ extension Syntax {
         ),
         range: syntax.sourceRange(converter: converter)
       )]
-    } else {
+
+    default:
       throw ASTError(_syntaxNode, .unknownSyntax, converter)
     }
   }
@@ -84,17 +98,16 @@ extension File {
     let syntax = try SyntaxParser.parse(url)
     try self.init(syntax, SourceLocationConverter(file: path, tree: syntax))
   }
-}
 
-extension String {
-  func parseAST() throws -> File {
+  public init(contents: String) throws {
     let url = URL(fileURLWithPath: NSTemporaryDirectory())
       .appendingPathComponent("typology.swift")
 
-    try write(toFile: url.path, atomically: true, encoding: .utf8)
+    try contents.write(toFile: url.path, atomically: true, encoding: .utf8)
+    defer { try! FileManager.default.removeItem(at: url) }
 
     let syntax = try SyntaxParser.parse(url)
-    try FileManager.default.removeItem(at: url)
-    return try File(syntax, SourceLocationConverter(file: url.path, tree: syntax))
+
+    try self.init(syntax, SourceLocationConverter(file: url.path, tree: syntax))
   }
 }

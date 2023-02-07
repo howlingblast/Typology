@@ -7,6 +7,7 @@
 
 import SwiftCLI
 import SwiftSyntax
+import SwiftSyntaxParser
 @testable import TypologyCore
 import XCTest
 

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 /// The DiagnosticEngine allows Swift tools to emit diagnostics.
 public class TypologyDiagnosticEngine {

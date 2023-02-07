@@ -123,7 +123,7 @@ struct Solver {
     case let (t, .variable(v)):
       return try bind(type: t, to: v)
 
-    case let (.constructor(a), .constructor(b)) where a == b:
+    case let (.constructor(a1, a2), .constructor(b1, b2)) where (a1, a2) == (b1, b2):
       return empty
 
     case let (.namedTuple(t1), .namedTuple(t2)) where t1.count == t2.count:
