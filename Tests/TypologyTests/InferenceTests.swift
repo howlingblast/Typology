@@ -174,7 +174,7 @@ final class InferenceTests: XCTestCase {
   }
 
   func testMemberOfMember() throws {
-    let literal = Expr.literal("Test")
+    let literal = ExprNode.literal("Test")
     let magnitude = Expr.member(.member(literal, "count"), "magnitude")
     let error = Expr.member(.member(literal, "magnitude"), "count")
 
@@ -192,7 +192,7 @@ final class InferenceTests: XCTestCase {
   }
 
   func testLambdaMember() throws {
-    let lambda = Expr.application(
+    let lambda = ExprNode.application(
       .lambda(["x"], .ternary("x", .literal("one"), .literal("zero"))),
       [.literal(true)]
     )
@@ -213,7 +213,7 @@ final class InferenceTests: XCTestCase {
   }
 
   func testTupleMember() throws {
-    let tuple = Expr.tuple([.literal(42), .literal("forty two")])
+    let tuple = ExprNode.tuple([.literal(42), .literal("forty two")])
 
     XCTAssertEqual(try Expr.member(tuple, "0").infer(), .int)
     XCTAssertEqual(try Expr.member(tuple, "1").infer(), .string)
@@ -221,21 +221,21 @@ final class InferenceTests: XCTestCase {
   }
 
   func testNamedTupleMember() throws {
-    let namedTuple = Expr.namedTuple([
+    let namedTuple = ExprNode.namedTuple([
       ("text", .literal("some text")),
       ("count", .literal(10)),
     ])
-    let tuple = Expr.tuple([.literal("some text"), .literal(10)])
-    let mixedTuple = Expr.namedTuple([
+    let tuple = ExprNode.tuple([.literal("some text"), .literal(10)])
+    let mixedTuple = ExprNode.namedTuple([
       ("text", .literal("some text")),
       (nil, .literal(10)),
     ])
-    let mixedTuple2 = Expr.namedTuple([
+    let mixedTuple2 = ExprNode.namedTuple([
       (nil, .literal("some text")),
       ("count", .literal(10)),
     ])
-    let fewArguments = Expr.tuple([.literal("some text")])
-    let wrongOrder = Expr.tuple([.literal(10), .literal("some text")])
+    let fewArguments = ExprNode.tuple([.literal("some text")])
+    let wrongOrder = ExprNode.tuple([.literal(10), .literal("some text")])
 
     let e: Environment = [
       "acceptNamedTuple": [

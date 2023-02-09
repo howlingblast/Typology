@@ -23,7 +23,7 @@ extension PatternSyntaxProtocol {
         range: syntax.sourceRange(converter: converter)
       )
     } else {
-      throw ASTError(_syntaxNode, .unknownSyntax, converter)
+      throw ASTError(_syntaxNode, .unknownPatternSyntax, converter)
     }
   }
 }

@@ -49,35 +49,25 @@ extension CodeBlockItemSyntax.Item {
 
 extension SyntaxProtocol {
   func toStatement(_ converter: SourceLocationConverter) throws -> [Statement] {
-    switch self {
-    case let syntax as VariableDeclSyntax:
+    switch Syntax(self).as(SyntaxEnum.self) {
+    case .variableDecl(let syntax):
       return try [BindingDecl(syntax, converter)]
 
-    case let syntax as SequenceExprSyntax:
-      return try syntax.elements.map { try ExprNode($0, converter) }
-
-    case let syntax as FunctionDeclSyntax:
+    case .functionDecl(let syntax):
       return try [FunctionDecl(syntax, converter)]
 
-    case let syntax as ReturnStmtSyntax:
+    case .returnStmt(let syntax):
       return try [ReturnStmt(syntax, converter)]
 
-    case let syntax as CodeBlockItemSyntax:
+    case .codeBlockItem(let syntax):
       return try syntax.item.toStatement(converter)
 
-    case let syntax as FunctionCallExprSyntax:
-      return try [
-        ExprNode(
-          expr: Expr.application(
-            Expr(syntax.calledExpression, converter),
-            syntax.argumentList.map { try Expr($0.expression, converter) }
-          ),
-          range: syntax.sourceRange(converter: converter)
-        )
-      ]
-
     default:
-      throw ASTError(_syntaxNode, .unknownSyntax, converter)
+      if let syntax = ExprSyntax(self) {
+        return try [syntax.toExprNode(converter)]
+      }
+
+      throw ASTError(_syntaxNode, .unknownStmtSyntax, converter)
     }
   }
 }
@@ -108,8 +98,6 @@ extension File {
     try contents.write(toFile: url.path, atomically: true, encoding: .utf8)
     defer { try! FileManager.default.removeItem(at: url) }
 
-    let syntax = try SyntaxParser.parse(url)
-
-    try self.init(syntax, SourceLocationConverter(file: url.path, tree: syntax))
+    try self.init(path: url.path)
   }
 }

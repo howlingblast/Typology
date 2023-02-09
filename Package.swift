@@ -22,23 +22,25 @@ let package = Package(
     .target(
       name: "TypologyCore",
       dependencies: [
+        .product(name: "SwiftOperators", package: "swift-syntax"),
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
         "Rainbow",
-        "SwiftCLI"
+        "SwiftCLI",
       ]
     ),
     .executableTarget(
       name: "TypologyCLI",
       dependencies: [
         "SwiftCLI",
-        "TypologyCore"
+        "TypologyCore",
       ]
     ),
     .testTarget(
       name: "TypologyTests",
       dependencies: [
-        "TypologyCore"
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        "TypologyCore",
       ]
     ),
   ]

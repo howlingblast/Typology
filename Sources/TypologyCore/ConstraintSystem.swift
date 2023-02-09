@@ -77,6 +77,13 @@ struct ConstraintSystem {
     return try infer(inferred)
   }
 
+  private mutating func infer<T>(
+    inExtended environment: T,
+    _ inferred: ExprNode
+  ) throws -> Type where T: Sequence, T.Element == (Identifier, Scheme) {
+    try infer(inExtended: environment, inferred.expr)
+  }
+
   /** Generate a new type variable that can be stored in `constraints`. If
    constraints are consistent and a single solution ca be found, this
    type variable will be resolved to a concrete type with a substitution created
@@ -134,6 +141,12 @@ struct ConstraintSystem {
     switch expr {
     case let .literal(literal):
       return literal.defaultType
+
+    case let .binary(left, op, right):
+      return try infer(Expr.application(.identifier(op), [left, right]))
+
+    case .interpolatedString(_, _):
+      return .string
 
     case let .identifier(id):
       return try lookup(id, in: environment, orThrow: .unbound(id))
@@ -198,5 +211,9 @@ struct ConstraintSystem {
     case let .namedTuple(expressions):
       return try .namedTuple(expressions.map { ($0.0, try infer($0.1)) })
     }
+  }
+
+  mutating func infer(_ exprNode: ExprNode) throws -> Type {
+    try infer(exprNode.expr)
   }
 }

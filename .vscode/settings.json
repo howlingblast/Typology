@@ -1,4 +1,4 @@
 {
   "editor.formatOnSave": true,
-  "lldb.library": "/home/x/swift-5.7.3-RELEASE-ubuntu22.04/usr/lib/liblldb.so"
+  "lldb.library": "/home/x/swift-5.7.3-RELEASE-ubuntu22.04/usr/lib/liblldb.so",
 }

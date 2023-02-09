@@ -10,6 +10,10 @@ import SwiftSyntax
 
 struct ASTError: DiagnosticError {
   enum Value {
+    case unknownExprSyntax
+    case unknownStmtSyntax
+    case unknownTypeSyntax
+    case unknownPatternSyntax
     case unknownSyntax
   }
 
@@ -21,6 +25,7 @@ struct ASTError: DiagnosticError {
 extension ASTError {
   init(_ syntax: Syntax, _ value: Value, _ converter: SourceLocationConverter) {
     self.init(
-      range: syntax.sourceRange(converter: converter), value: value, syntax: syntax.description)
+      range: syntax.sourceRange(converter: converter), value: value,
+      syntax: syntax.debugDescription())
   }
 }

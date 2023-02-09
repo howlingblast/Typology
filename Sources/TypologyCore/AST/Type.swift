@@ -126,6 +126,10 @@ enum Type {
       })
   }
 
+  static func optional(_ type: Type) -> Type {
+    .constructor("Optional", [type])
+  }
+
   static func array(of: Type) -> Type {
     .constructor("Array", [of])
   }
@@ -145,6 +149,8 @@ extension Type: CustomStringConvertible {
     switch self {
     case .constructor(let ident, []):
       return ident.value
+    case .constructor("Optional", let types) where types.count == 1:
+      return "\(types[0])?"
     case .constructor("Array", let types) where types.count == 1:
       return "[\(types[0])]"
     case .constructor("Dictionary", let types) where types.count == 2:
@@ -205,22 +211,22 @@ extension Type: Equatable {
 
 extension TypeSyntaxProtocol {
   func toType(_ converter: SourceLocationConverter) throws -> Type {
-    switch self {
-    case let identifier as SimpleTypeIdentifierSyntax:
+    switch Syntax(self).as(SyntaxEnum.self) {
+    case .simpleTypeIdentifier(let identifier):
       return .constructor(TypeIdentifier(value: identifier.name.text), [])
 
-    case let tuple as TupleTypeSyntax:
+    case .tupleType(let tuple):
       return try .tuple(tuple.elements.map { try $0.type.toType(converter) })
 
-    case let array as ArrayTypeSyntax:
+    case .arrayType(let array):
       return try .array(of: array.elementType.toType(converter))
 
-    case let dictionary as DictionaryTypeSyntax:
+    case .dictionaryType(let dictionary):
       return try .dict(
         key: dictionary.keyType.toType(converter), value: dictionary.valueType.toType(converter))
 
     default:
-      throw ASTError(_syntaxNode, .unknownSyntax, converter)
+      throw ASTError(_syntaxNode, .unknownTypeSyntax, converter)
     }
   }
 }
