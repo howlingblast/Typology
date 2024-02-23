@@ -5,7 +5,7 @@
 //  Created by Max Desiatov on 25/05/2019.
 //
 
-enum Literal {
+enum Literal: Equatable {
   case integer(Int)
   case floating(Double)
   case bool(Bool)
@@ -22,6 +22,12 @@ enum Literal {
     case .string:
       return .string
     }
+  }
+}
+
+extension Literal: EquatableIgnoringSourceRange {
+  func eq(_ other: Literal, ignoreRanges: Bool) -> Bool {
+    self == other
   }
 }
 

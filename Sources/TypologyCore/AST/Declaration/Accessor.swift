@@ -39,11 +39,13 @@ extension AccessorDecl {
 extension Array where Element == AccessorDecl {
   init(_ syntax: SyntaxProtocol?, _ converter: SourceLocationConverter) throws {
     if let block = syntax.flatMap({ CodeBlockSyntax($0._syntaxNode) }) {
-      self = try [AccessorDecl(
-        body: [Statement](block.statements, converter),
-        kind: .get,
-        range: block.sourceRange(converter: converter)
-      )]
+      self = try [
+        AccessorDecl(
+          body: [Statement](block.statements, converter),
+          kind: .get,
+          range: block.sourceRange(converter: converter)
+        )
+      ]
     } else if let block = syntax.flatMap({ AccessorBlockSyntax($0._syntaxNode) }) {
       self = try block.accessors.map { try AccessorDecl($0, converter) }
     } else if let syntax = syntax {

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 typealias Identifier = String
 typealias Operator = String
@@ -40,28 +41,33 @@ struct Target {
   let main: Module
 }
 
-extension Syntax {
+extension CodeBlockItemSyntax.Item {
   func toStatement(_ converter: SourceLocationConverter) throws -> [Statement] {
-    if let syntax = VariableDeclSyntax(self) {
+    try _syntaxNode.toStatement(converter)
+  }
+}
+
+extension SyntaxProtocol {
+  func toStatement(_ converter: SourceLocationConverter) throws -> [Statement] {
+    switch Syntax(self).as(SyntaxEnum.self) {
+    case .variableDecl(let syntax):
       return try [BindingDecl(syntax, converter)]
-    } else if let syntax = SequenceExprSyntax(self) {
-      return try syntax.elements.map { try ExprNode($0, converter) }
-    } else if let syntax = FunctionDeclSyntax(self) {
+
+    case .functionDecl(let syntax):
       return try [FunctionDecl(syntax, converter)]
-    } else if let syntax = ReturnStmtSyntax(self) {
+
+    case .returnStmt(let syntax):
       return try [ReturnStmt(syntax, converter)]
-    } else if let syntax = CodeBlockItemSyntax(self) {
+
+    case .codeBlockItem(let syntax):
       return try syntax.item.toStatement(converter)
-    } else if let syntax = FunctionCallExprSyntax(self) {
-      return try [ExprNode(
-        expr: Expr.application(
-          Expr(syntax.calledExpression, converter),
-          syntax.argumentList.map { try Expr($0.expression, converter) }
-        ),
-        range: syntax.sourceRange(converter: converter)
-      )]
-    } else {
-      throw ASTError(_syntaxNode, .unknownSyntax, converter)
+
+    default:
+      if let syntax = ExprSyntax(self) {
+        return try [syntax.toExprNode(converter)]
+      }
+
+      throw ASTError(_syntaxNode, .unknownStmtSyntax, converter)
     }
   }
 }
@@ -84,17 +90,14 @@ extension File {
     let syntax = try SyntaxParser.parse(url)
     try self.init(syntax, SourceLocationConverter(file: path, tree: syntax))
   }
-}
 
-extension String {
-  func parseAST() throws -> File {
+  public init(contents: String) throws {
     let url = URL(fileURLWithPath: NSTemporaryDirectory())
       .appendingPathComponent("typology.swift")
 
-    try write(toFile: url.path, atomically: true, encoding: .utf8)
+    try contents.write(toFile: url.path, atomically: true, encoding: .utf8)
+    defer { try! FileManager.default.removeItem(at: url) }
 
-    let syntax = try SyntaxParser.parse(url)
-    try FileManager.default.removeItem(at: url)
-    return try File(syntax, SourceLocationConverter(file: url.path, tree: syntax))
+    try self.init(path: url.path)
   }
 }

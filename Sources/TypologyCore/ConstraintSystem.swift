@@ -21,11 +21,10 @@ enum Constraint {
   case member(Type, member: Identifier, memberType: Type)
 }
 
-/** Environment of possible overloads for `Identifier`. There's an assumption
- that `[Scheme]` array can't be empty, since an empty array of overloads is
- meaningless. If no overloads are available for `Identifier`, it shouldn't be
- in the `Environoment` dictionary as a key in the first place.
- */
+/// Environment of possible overloads for `Identifier`. There's an assumption
+/// that `[Scheme]` array can't be empty, since an empty array of overloads is
+/// meaningless. If no overloads are available for `Identifier`, it shouldn't be
+/// in the `Environoment` dictionary as a key in the first place.
 typealias Environment = [Identifier: [Scheme]]
 typealias Members = [TypeIdentifier: Environment]
 
@@ -68,7 +67,7 @@ struct ConstraintSystem {
   ) throws -> Type where T: Sequence, T.Element == (Identifier, Scheme) {
     // preserve old environment to be restored after inference in extended
     // environment has finished
-    var old = self.environment
+    let old = self.environment
 
     defer { self.environment = old }
 
@@ -76,6 +75,13 @@ struct ConstraintSystem {
       self.environment[id] = [scheme]
     }
     return try infer(inferred)
+  }
+
+  private mutating func infer<T>(
+    inExtended environment: T,
+    _ inferred: ExprNode
+  ) throws -> Type where T: Sequence, T.Element == (Identifier, Scheme) {
+    try infer(inExtended: environment, inferred.expr)
   }
 
   /** Generate a new type variable that can be stored in `constraints`. If
@@ -136,6 +142,12 @@ struct ConstraintSystem {
     case let .literal(literal):
       return literal.defaultType
 
+    case let .binary(left, op, right):
+      return try infer(Expr.application(.identifier(op), [left, right]))
+
+    case .interpolatedString(_, _):
+      return .string
+
     case let .identifier(id):
       return try lookup(id, in: environment, orThrow: .unbound(id))
 
@@ -149,10 +161,11 @@ struct ConstraintSystem {
     case let .application(callable, arguments):
       let callableType = try infer(callable)
       let typeVariable = fresh()
-      constraints.append(.equal(
-        callableType,
-        .arrow(try arguments.map { try infer($0) }, typeVariable)
-      ))
+      constraints.append(
+        .equal(
+          callableType,
+          .arrow(try arguments.map { try infer($0) }, typeVariable)
+        ))
       return typeVariable
 
     case let .ternary(cond, expr1, expr2):
@@ -198,5 +211,9 @@ struct ConstraintSystem {
     case let .namedTuple(expressions):
       return try .namedTuple(expressions.map { ($0.0, try infer($0.1)) })
     }
+  }
+
+  mutating func infer(_ exprNode: ExprNode) throws -> Type {
+    try infer(exprNode.expr)
   }
 }

@@ -6,7 +6,18 @@
     {
       "label": "swift test",
       "type": "shell",
-      "command": "swift test"
-    }
+      "command": "swift test",
+      "problemMatcher": [
+        "$swiftc"
+      ]
+    },
+    {
+      "label": "swift: Build Debug All",
+      "type": "shell",
+      "command": "swift build --build-tests",
+      "problemMatcher": [
+        "$swiftc"
+      ]
+    },
   ]
 }

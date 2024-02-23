@@ -1,12 +1,10 @@
-// swift-tools-version:5.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version:5.7
 
 import PackageDescription
 
 let package = Package(
   name: "Typology",
   products: [
-    // Products define the executables and libraries produced by a package, and make them visible to other packages.
     .library(
       name: "TypologyCore",
       targets: ["TypologyCore"]
@@ -14,7 +12,7 @@ let package = Package(
     .executable(name: "typology", targets: ["TypologyCLI"]),
   ],
   dependencies: [
-    .package(name: "SwiftSyntax", url: "https://github.com/apple/swift-syntax.git", .exact("0.50400.0")),
+    .package(url: "https://github.com/apple/swift-syntax", branch: "main"),
     .package(url: "https://github.com/jakeheis/SwiftCLI", from: "5.0.0"),
     .package(url: "https://github.com/onevcat/Rainbow", from: "3.0.0"),
   ],
@@ -23,15 +21,27 @@ let package = Package(
     // Targets can depend on other targets in this package, and on products in packages which this package depends on.
     .target(
       name: "TypologyCore",
-      dependencies: ["SwiftSyntax", "Rainbow", "SwiftCLI"]
+      dependencies: [
+        .product(name: "SwiftOperators", package: "swift-syntax"),
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftSyntaxParser", package: "swift-syntax"),
+        "Rainbow",
+        "SwiftCLI",
+      ]
     ),
-    .target(
+    .executableTarget(
       name: "TypologyCLI",
-      dependencies: ["SwiftCLI", "TypologyCore"]
+      dependencies: [
+        "SwiftCLI",
+        "TypologyCore",
+      ]
     ),
     .testTarget(
       name: "TypologyTests",
-      dependencies: ["TypologyCore"]
+      dependencies: [
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        "TypologyCore",
+      ]
     ),
   ]
 )

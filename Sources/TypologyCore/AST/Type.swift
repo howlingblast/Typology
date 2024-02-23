@@ -28,6 +28,10 @@ struct TypeIdentifier: Hashable {
   let value: String
 }
 
+extension TypeIdentifier: CustomStringConvertible {
+  var description: String { value }
+}
+
 extension TypeIdentifier: ExpressibleByStringLiteral {
   init(stringLiteral value: String) {
     self.value = value
@@ -116,9 +120,22 @@ enum Type {
   case namedTuple([(Identifier?, Type)])
 
   static func tuple(_ types: [Type]) -> Type {
-    return .namedTuple(types.enumerated().map {
-      (nil, $0.1)
-    })
+    return .namedTuple(
+      types.enumerated().map {
+        (nil, $0.1)
+      })
+  }
+
+  static func optional(_ type: Type) -> Type {
+    .constructor("Optional", [type])
+  }
+
+  static func array(of: Type) -> Type {
+    .constructor("Array", [of])
+  }
+
+  static func dict(key: Type, value: Type) -> Type {
+    .constructor("Dictionary", [key, value])
   }
 
   static let bool = Type.constructor("Bool", [])
@@ -127,20 +144,54 @@ enum Type {
   static let int = Type.constructor("Int", [])
 }
 
+extension Type: CustomStringConvertible {
+  var description: String {
+    switch self {
+    case .constructor(let ident, []):
+      return ident.value
+    case .constructor("Optional", let types) where types.count == 1:
+      return "\(types[0])?"
+    case .constructor("Array", let types) where types.count == 1:
+      return "[\(types[0])]"
+    case .constructor("Dictionary", let types) where types.count == 2:
+      return "[\(types[0]): \(types[1])]"
+    case .constructor(let ident, let types):
+      return "\(ident)<\(types.map { $0.description }.joined(separator: ", "))>"
+
+    case .variable(let variable):
+      return variable.value
+
+    case .arrow(let params, let ret):
+      return "(\(params.map { $0.description }.joined(separator: ", "))) -> \(ret)"
+
+    case .namedTuple(let types):
+      let pairs = types.map { (ident, ty) in
+        if let ident = ident {
+          return "\(ident): \(ty)"
+        }
+
+        return ty.description
+      }
+
+      return "(\(pairs.joined(separator: ", ")))"
+    }
+  }
+}
+
 infix operator -->
 
 /// A shorthand version of `Type.arrow`
-func -->(arguments: [Type], returned: Type) -> Type {
+func --> (arguments: [Type], returned: Type) -> Type {
   return Type.arrow(arguments, returned)
 }
 
 /// A shorthand version of `Type.arrow` for single argument functions
-func -->(argument: Type, returned: Type) -> Type {
+func --> (argument: Type, returned: Type) -> Type {
   return Type.arrow([argument], returned)
 }
 
 extension Type: Equatable {
-  static func ==(lhs: Type, rhs: Type) -> Bool {
+  static func == (lhs: Type, rhs: Type) -> Bool {
     switch (lhs, rhs) {
     case let (.constructor(id1, t1), .constructor(id2, t2)):
       return id1 == id2 && t1 == t2
@@ -158,16 +209,30 @@ extension Type: Equatable {
   }
 }
 
+extension TypeSyntaxProtocol {
+  func toType(_ converter: SourceLocationConverter) throws -> Type {
+    switch Syntax(self).as(SyntaxEnum.self) {
+    case .simpleTypeIdentifier(let identifier):
+      return .constructor(TypeIdentifier(value: identifier.name.text), [])
+
+    case .tupleType(let tuple):
+      return try .tuple(tuple.elements.map { try $0.type.toType(converter) })
+
+    case .arrayType(let array):
+      return try .array(of: array.elementType.toType(converter))
+
+    case .dictionaryType(let dictionary):
+      return try .dict(
+        key: dictionary.keyType.toType(converter), value: dictionary.valueType.toType(converter))
+
+    default:
+      throw ASTError(_syntaxNode, .unknownTypeSyntax, converter)
+    }
+  }
+}
+
 extension Type {
   init(_ type: TypeSyntaxProtocol, _ converter: SourceLocationConverter) throws {
-    if let tuple = TupleTypeSyntax(type._syntaxNode) {
-      self = try .tuple(tuple.elements.map { try Type($0.type, converter) })
-    } else if let identifier = SimpleTypeIdentifierSyntax(type._syntaxNode) {
-      self = .constructor(TypeIdentifier(value: identifier.name.text), [])
-    } else if let array = ArrayTypeSyntax(type._syntaxNode) {
-      self = try .constructor("Array", [Type(array.elementType, converter)])
-    } else {
-      throw ASTError(type._syntaxNode, .unknownSyntax, converter)
-    }
+    self = try type.toType(converter)
   }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftSyntax
+import SwiftSyntaxParser
 
 /// A TypologyDiagnostic message that can be emitted regarding some piece of code.
 public struct TypologyDiagnostic: Codable {

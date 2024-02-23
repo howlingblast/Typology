@@ -5,14 +5,13 @@
 //  Created by Max Desiatov on 27/04/2019.
 //
 
-/** `Solver` operates on a constraint system, which contains an array of
- `Constraint` values. These constraints are reduced one by one to find a
- suitable `Substitution` that make the constraints consistent with each other.
- `Solver` values are immutable, which allows separate solver iterations to
- operate independently. For example, backtracking is implemented as discarding
- failed `Solver` values and proceeding from the last known consistent iteration
- with new assumptions.
- */
+/// `Solver` operates on a constraint system, which contains an array of
+/// `Constraint` values. These constraints are reduced one by one to find a
+/// suitable `Substitution` that make the constraints consistent with each other.
+/// `Solver` values are immutable, which allows separate solver iterations to
+/// operate independently. For example, backtracking is implemented as discarding
+/// failed `Solver` values and proceeding from the last known consistent iteration
+/// with new assumptions.
 struct Solver {
   private let substitution: Substitution
   private let system: ConstraintSystem
@@ -123,7 +122,7 @@ struct Solver {
     case let (t, .variable(v)):
       return try bind(type: t, to: v)
 
-    case let (.constructor(a), .constructor(b)) where a == b:
+    case let (.constructor(a1, a2), .constructor(b1, b2)) where (a1, a2) == (b1, b2):
       return empty
 
     case let (.namedTuple(t1), .namedTuple(t2)) where t1.count == t2.count:
